@@ -9,23 +9,83 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
     />
 
-    <!-- CSS -->
+    <!-- Base widget page styles -->
     <link rel="stylesheet" href="../css/widget-page.css" />
+
+    <!-- Inline widget styling -->
+    <style>
+      .mood-widget {
+        background-color: var(--neutral-0);
+        border-radius: var(--border-radius);
+        border: var(--border-width-small) solid var(--black-alpha-200);
+        padding: 1em;
+      }
+      .mood-label {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .mood-display {
+        font-size: 3rem;
+        text-align: center;
+        margin: 0.5rem 0;
+      }
+      .mood-text {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .mood-widget input[type="range"] {
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+    </style>
   </head>
-  <!-- Content -->
+
   <body>
-    <main class="column column-md">
+    <div class="column column-md">
+      <!-- Intro text + continue button -->
       <section>
         <div class="text">
           <h1 class="margin-top-0">Mood Meter</h1>
           <p>
-            This widget lets you show how you feel using an emoji face. Move the
-            slider to change the mood. Then press the button when you are
-            feeling great!
+            This page shows a small interactive tool, called a
+            <strong>widget</strong>. Our widget lets you share how you feel
+            using an emoji face.
+          </p>
+          <p>
+            Click continue to try the widget. Move the slider and watch the
+            emoji change!
+          </p>
+        </div>
+
+        <button class="button-semantic button-primary button-continue">
+          <span class="button-text">Try the widget</span>
+          <svg
+            class="button-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16 8L14.59 6.59L9 12.17V0H7V12.17L1.42 6.58L0 8L8 16L16 8Z"
+              fill="white"
+            />
+          </svg>
+        </button>
+      </section>
+
+      <!-- Widget section -->
+      <section>
+        <div class="text">
+          <h2 class="margin-top-0">Use the Mood Meter</h2>
+          <p>
+            Move the slider to match your mood. The emoji and message will
+            change. Then press the button when you feel great!
           </p>
         </div>
 
@@ -34,70 +94,74 @@
 
           <input
             type="range"
-            id="mood-slider"
             min="0"
             max="2"
             value="1"
-            aria-label="Mood slider"
+            data-role="mood-slider"
           />
 
-          <div id="mood-display" class="mood-display">🙂</div>
-          <p id="mood-text">This face feels okay.</p>
+          <div class="mood-display" data-role="mood-display">🙂</div>
+          <p class="mood-text" data-role="mood-text">This face feels okay.</p>
 
           <button
-            id="celebrate-btn"
-            class="button-semantic button-primary"
             type="button"
+            class="button-semantic button-secondary"
+            data-role="celebrate-btn"
           >
             I'm feeling great!
           </button>
         </div>
       </section>
-    </main>
+    </div>
 
     <script type="module">
       import { WidgetPage } from "../js/WidgetPage.js";
+      import { Widget } from "../js/Widget.js";
+
+      // Create the MoodWidget class
+      class MoodWidget extends Widget {
+        constructor(container, page) {
+          super(container, page);
+          this.page = page;
+
+          this.slider = container.querySelector('[data-role="mood-slider"]');
+          this.display = container.querySelector('[data-role="mood-display"]');
+          this.text = container.querySelector('[data-role="mood-text"]');
+          this.button = container.querySelector('[data-role="celebrate-btn"]');
+
+          this.moods = [
+            { emoji: "😞", text: "This face feels sad." },
+            { emoji: "🙂", text: "This face feels okay." },
+            { emoji: "😄", text: "This face feels very happy!" },
+          ];
+
+          this.slider.addEventListener("input", () => this.update());
+          this.button.addEventListener("click", () => this.celebrate());
+
+          this.update();
+        }
+
+        update() {
+          const mood = this.moods[this.slider.value];
+          this.display.textContent = mood.emoji;
+          this.text.textContent = mood.text;
+          this.page.playActionSound();
+        }
+
+        celebrate() {
+          this.display.textContent = "🎉";
+          this.text.textContent =
+            "Nice job! You used the widget to show how you feel!";
+          this.page.playCorrectSound();
+          this.page.celebrate();
+        }
+      }
 
       document.addEventListener("DOMContentLoaded", () => {
-        // This sets up sounds and confetti!
-        const page = new WidgetPage("Mood Meter", document.body);
+        const widgetPage = new WidgetPage("mood-widget-page", document.body);
 
-        const slider = document.getElementById("mood-slider");
-        const moodDisplay = document.getElementById("mood-display");
-        const moodText = document.getElementById("mood-text");
-        const celebrateBtn = document.getElementById("celebrate-btn");
-
-        if (!slider || !moodDisplay || !moodText || !celebrateBtn) {
-          console.error("Mood widget elements not found");
-          return;
-        }
-
-        const moods = [
-          { emoji: "😞", text: "This face feels sad." },
-          { emoji: "🙂", text: "This face feels okay." },
-          { emoji: "😄", text: "This face feels very happy!" },
-        ];
-
-        function updateMood() {
-          const moodIndex = Number(slider.value);
-          const mood = moods[moodIndex];
-          moodDisplay.textContent = mood.emoji;
-          moodText.textContent = mood.text;
-          page.playActionSound();
-        }
-
-        slider.addEventListener("input", updateMood);
-
-        celebrateBtn.addEventListener("click", () => {
-          moodDisplay.textContent = "🎉";
-          moodText.textContent =
-            "Nice! Thanks for sharing how you feel. You just used an interactive widget.";
-          page.playCorrectSound();
-          page.celebrate();
-        });
-
-        // Starting mood
-        updateMood();
+        // Register this inline widget class
+        widgetPage.registerWidget(".mood-widget", MoodWidget);
       });
     </script>
   </body>
