@@ -1,30 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mood Meter Widget</title>
 
-<head>
-  <!-- Metadata -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Page Title</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap"
-    rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/widget-page.css" />
+  </head>
+  <!-- Content -->
+  <body>
+    <main class="column column-md">
+      <section>
+        <div class="text">
+          <h1 class="margin-top-0">Mood Meter</h1>
+          <p>
+            This widget lets you show how you feel using an emoji face. Move the
+            slider to change the mood. Then press the button when you are
+            feeling great!
+          </p>
+        </div>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="../css/widget-page.css">
-</head>
+        <div class="widget mood-widget">
+          <p class="mood-label">How are you feeling right now?</p>
 
-<body>
-  <script type="module">
-    import { WidgetPage } from "../js/WidgetPage.js";
+          <input
+            type="range"
+            id="mood-slider"
+            min="0"
+            max="2"
+            value="1"
+            aria-label="Mood slider"
+          />
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const widgetPage = new WidgetPage("widget-page-template", document.body);
-    });
-  </script>
-</body>
+          <div id="mood-display" class="mood-display">🙂</div>
+          <p id="mood-text">This face feels okay.</p>
 
+          <button
+            id="celebrate-btn"
+            class="button-semantic button-primary"
+            type="button"
+          >
+            I'm feeling great!
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { WidgetPage } from "../js/WidgetPage.js";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // This sets up sounds and confetti!
+        const page = new WidgetPage("Mood Meter", document.body);
+
+        const slider = document.getElementById("mood-slider");
+        const moodDisplay = document.getElementById("mood-display");
+        const moodText = document.getElementById("mood-text");
+        const celebrateBtn = document.getElementById("celebrate-btn");
+
+        if (!slider || !moodDisplay || !moodText || !celebrateBtn) {
+          console.error("Mood widget elements not found");
+          return;
+        }
+
+        const moods = [
+          { emoji: "😞", text: "This face feels sad." },
+          { emoji: "🙂", text: "This face feels okay." },
+          { emoji: "😄", text: "This face feels very happy!" },
+        ];
+
+        function updateMood() {
+          const moodIndex = Number(slider.value);
+          const mood = moods[moodIndex];
+          moodDisplay.textContent = mood.emoji;
+          moodText.textContent = mood.text;
+          page.playActionSound();
+        }
+
+        slider.addEventListener("input", updateMood);
+
+        celebrateBtn.addEventListener("click", () => {
+          moodDisplay.textContent = "🎉";
+          moodText.textContent =
+            "Nice! Thanks for sharing how you feel. You just used an interactive widget.";
+          page.playCorrectSound();
+          page.celebrate();
+        });
+
+        // Starting mood
+        updateMood();
+      });
+    </script>
+  </body>
 </html>
